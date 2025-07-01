@@ -1,19 +1,35 @@
 {
-  "name": "authproject",
+  "name": "user-management-api",
   "version": "1.0.0",
-  "main": "src/index.js",
+  "description": "User management API with JWT authentication and protected routes",
+  "main": "dist/app.js",
   "scripts": {
-    "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "dev": "ts-node-dev src/app.ts",
+    "start": "node dist/app.js",
+    "test": "jest"
   },
   "author": "",
-  "license": "ISC",
-  "description": "",
+  "license": "MIT",
   "dependencies": {
-    "axios": "^1.8.1",
-    "bcryptjs": "^3.0.2",
-    "dotenv": "^16.5.0",
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    "typescript": "^5.8.3"
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "express-validator": "^7.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.5.0",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/cors": "^2.8.13",
+    "typescript": "^5.1.6",
+    "ts-node-dev": "^2.0.0",
+    "@types/jest": "^29.5.3",
+    "jest": "^29.6.2",
+    "ts-jest": "^29.1.1"
   }
 }

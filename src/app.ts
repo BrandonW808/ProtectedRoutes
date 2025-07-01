@@ -1,23 +1,81 @@
-import express from 'express';
+import express, { Application } from 'express';
 import mongoose from 'mongoose';
+import cors from 'cors';
 import dotenv from 'dotenv';
-import protectedRoutes from './routes/protectedRoutes'; // Import protected routes
-import { login } from './controllers/authController'; // Import login handler
 
-dotenv.config(); // Load environment variables
+// Import routes
+import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/userRoutes';
 
-const app = express();
-app.use(express.json()); // Parse JSON bodies
+// Import middleware
+import { errorHandler } from './middleware/errorMiddleware';
+import { notFoundHandler } from './middleware/notFoundMiddleware';
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/yourdbname')
-    .then(() => console.log('MongoDB connected'))
-    .catch((err) => console.error('MongoDB connection error:', err));
+// Load environment variables
+dotenv.config();
 
-// Routes
-app.post('/login', login); // Public login route
-app.use('/api', protectedRoutes); // Protected routes under /api (e.g., /api/protected)
+// Create Express app
+const app: Application = express();
+
+// Middleware
+app.use(cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+    credentials: true
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+
+// Error handling middleware (must be last)
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+// Database connection
+const connectDB = async (): Promise<void> => {
+    try {
+        const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/user_management_db';
+        await mongoose.connect(mongoUri);
+        console.log('✅ MongoDB connected successfully');
+    } catch (error) {
+        console.error('❌ MongoDB connection error:', error);
+        process.exit(1);
+    }
+};
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+const startServer = async (): Promise<void> => {
+    try {
+        await connectDB();
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT}`);
+            console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err: Error) => {
+    console.error('Unhandled Promise Rejection:', err);
+    process.exit(1);
+});
+
+// Start the server
+startServer();
+
+export default app;
